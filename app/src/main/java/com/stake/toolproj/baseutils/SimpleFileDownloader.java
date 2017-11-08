@@ -22,12 +22,16 @@ public class SimpleFileDownloader {
                 .build();
         OutputStream output = null;
         BufferedInputStream input = null;
+        InputStream inputStream = null;
         try {
             Response response = client.newCall(request).execute();
-            InputStream inputStream = response.body().byteStream();
+            if (!response.isSuccessful()) {
+                return false;
+            }
+            inputStream = response.body().byteStream();
             File file = new File(path);
-            if (file.exists()) {
-                FileUtil.deleteFile(file);
+            if (!file.exists()) {
+                file.mkdirs();
             }
             output = new FileOutputStream(file);
             input = new BufferedInputStream(inputStream);
@@ -39,7 +43,7 @@ public class SimpleFileDownloader {
             output.flush();
             response.close();
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }finally {
@@ -49,6 +53,9 @@ public class SimpleFileDownloader {
                 }
                 if (input != null) {
                     input.close();
+                }
+                if (inputStream != null) {
+                    inputStream.close();
                 }
 
             } catch (IOException e) {
